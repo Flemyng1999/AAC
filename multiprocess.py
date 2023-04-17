@@ -72,7 +72,7 @@ def correct(o2a_, baseline_, ndvi, save_path):
     rows = list(np.array(index[:, 0], dtype=int))
     cols = list(np.array(index[:, 1], dtype=int))
     # 对O2-A的吸收做矫正
-    o2a_[rows, cols] = o2a_[rows, cols] * beta[rows, cols]>?>
+    o2a_[rows, cols] = o2a_[rows, cols] * beta[rows, cols]
     # print('Correction is DONE')
     return o2a_
 
