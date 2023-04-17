@@ -3,6 +3,8 @@ It's an atmospheric absorption correction program for Pika-L hyperspectral data.
 
 这是为Pika-L高光谱数据编写的大气吸收矫正代码。
 
+e-mail: flemyng1999@outlook.com
+
 ## 项目简介(Project introduction)
 
 ### 背景
