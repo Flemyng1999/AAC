@@ -15,7 +15,11 @@ It's an atmospheric absorption correction program for Pika-L hyperspectral data.
 
 由于传感器视角（17.6°）的原因画面**边缘**的上行辐射走过的路径会比**中心**的多走$\Delta L$ 的距离，这段距离中存在大气中一些分子的“吸收”作用，所以在部分波段上边缘亮度会低于中心亮度，从而影响数据的使用。
 
+<<<<<<< HEAD
 <img src="docs/imgs/IMG_0987.PNG" alt="p1" style="zoom:15%;" />
+=======
+![p1](docs/imgs/IMG_0987.PNG)
+>>>>>>> main
 
 然而这些被吸收波段的范围往往很窄（<20nm），因此可以利用其周围未被“吸收”的波段作为参考来矫正它们。
 
@@ -34,6 +38,10 @@ cd AAC
 
 1. 设置你的第一层文件目录（例如：2022_7_5_sunny)，在这个目录下设置三个子目录：4rad、5ref和ROI（可选）。
 
+<<<<<<< HEAD
+=======
+   ![p2](docs/imgs/Snipaste_2023-04-18_00-10-57.png)
+>>>>>>> main
 
 <img src="docs/imgs/Snipaste_2023-04-18_00-10-57.png" alt="p2" style="zoom:50%;" />
 
