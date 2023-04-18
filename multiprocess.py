@@ -19,9 +19,9 @@ def baseline(part_, bands_):
 
 
 # 用于计算系数使用的distance
-def distance(arr, height=80):
+def distance(arr, height=80, view_angle=17.6):
     index__, dist_ = ap.pixel_info(arr)
-    long = height * math.tan((17.6 * math.pi) / 360)
+    long = height * math.tan((view_angle * math.pi) / 360)
     dist_ = long * dist_ / max(dist_)  # 将地面上的像素距离转化为真实长度
     index__[:, 2] = pow(height ** 2 + dist_ * dist_, 0.5) - height + 1e-6  # 勾股定理将地面距离转化为物体到传感器距离
     # 将实际距离放入二维矩阵

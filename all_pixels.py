@@ -15,8 +15,8 @@ def pixel_info(arr):
     distance = abs(pixel_index2[1] - linear_model[0] * pixel_index2[0] - linear_model[1]) / pow(
         1 + linear_model[0] * linear_model[0], 0.5)
 
-    pixel = np.c_[pixel_index, distance]
-    return pixel, distance
+    pix_info = np.c_[pixel_index, distance]
+    return pix_info, distance
 
 
 def pixel(arr):
@@ -30,5 +30,5 @@ if __name__ == "__main__":
     tif_name = "rad_part.bip"
 
     # data
-    arr = tt.readTiffArray(os.path.join(dir_path, "4rad", tif_name))
-    index_, dist_ = pixel_info(arr[100, :, :])
+    array = tt.readTiffArray(os.path.join(dir_path, "4rad", tif_name))
+    index_, dist_ = pixel_info(array[100, :, :])

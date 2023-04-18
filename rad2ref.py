@@ -25,7 +25,6 @@ def read_target(txt_path):
 
 
 def rad2ref(rad, dir_path):
-
     # [dir_path] is ONLY for target_rad
     target_rad = read_target(os.path.join(dir_path, "4rad", "rad_target.txt"))
     target_ref = np.loadtxt(r"C:\Users\imFle\OneDrive\resample50178.txt", dtype=np.float32)
