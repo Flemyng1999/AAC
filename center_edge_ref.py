@@ -49,7 +49,7 @@ def sif(rad_):
 
 
 # 读取图像
-path = r"D:\2022_7_5_sunny"
+path = r"D:\2022_7_12_sunny"
 rad = tt.readTiffArray(os.path.join(path, "4rad", "rad_corr.tif"))
 ref = rad2ref.rad2ref(rad, path)
 ndvi = vd.VegeDivision(60, 100, ref)
@@ -111,5 +111,5 @@ fig.colorbar(im,
 ax[1].set_title("SIF of canopy")
 ax[1].axis('off')
 
-plt.savefig(os.path.join("docs", "imgs", "center_edge_corr.png"), dpi=300)
+# plt.savefig(os.path.join("docs", "imgs", "center_edge_corr.png"), dpi=300)
 plt.show()

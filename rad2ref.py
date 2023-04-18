@@ -37,7 +37,7 @@ def rad2ref(rad, dir_path):
     plt.rc('font', size=13)
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(2, figsize=(8, 8), dpi=300, constrained_layout=1)
+    fig, ax = plt.subplots(2, figsize=(8, 8), dpi=100, constrained_layout=1)
 
     ax[0].plot(target_ref[:, 0], target_rad, label="target_rad")
     ax[0].plot(target_ref[:, 0], irr, label="irr")
@@ -53,7 +53,7 @@ def rad2ref(rad, dir_path):
 
 def main(dir_path):
     # data
-    ds, rad = tt.readTiff(os.path.join(dir_path, "4rad", "rad_corr.tif"))
+    ds, rad = tt.readTiff(os.path.join(dir_path, "4rad", "rad_corr.tif")) # type: ignore
     target_rad = read_target(os.path.join(dir_path, "4rad", "rad_target.txt"))
     target_ref = np.loadtxt(r"C:\Users\imFle\OneDrive\resample50178.txt", dtype=np.float32)
 
@@ -66,7 +66,7 @@ def main(dir_path):
     plt.rc('font', size=13)
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(2, figsize=(8, 8), dpi=300, constrained_layout=1)
+    fig, ax = plt.subplots(2, figsize=(8, 8), dpi=100, constrained_layout=1)
 
     ax[0].plot(target_ref[:, 0], target_rad, label="target_rad", solid_capstyle='round')
     ax[0].plot(target_ref[:, 0], irr, label="irr", solid_capstyle='round')

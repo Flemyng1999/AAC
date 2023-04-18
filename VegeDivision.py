@@ -135,7 +135,7 @@ def main(path_):
 
     vi = ["ndvi", "nirv", "fcvi", "sif", "APAR"]
 
-    dataset, im_data = tt.readTiff(os.path.join(path_, "5ref", "ref.bip"))  # 读取地表反射率文件
+    dataset, im_data = tt.readTiff(os.path.join(path_, "5ref", "ref.bip"))  # type: ignore # 读取地表反射率文件
     mask = VegeDivision(60, 100, im_data)
     shadow = VegeDivision_2(59, 38, 16, im_data)
 

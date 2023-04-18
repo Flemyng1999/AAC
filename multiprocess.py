@@ -1,5 +1,6 @@
 import os
 import math
+from matplotlib import pyplot as plt
 from tqdm import tqdm
 import VegeDivision as vd
 import numpy as np
@@ -7,7 +8,7 @@ import tiff_tool as tt
 import all_pixels as ap
 import curve_fitting as cf
 import rad2ref
-import get_roi_ref
+import all_sides as side
 from multiprocessing import Pool
 
 
@@ -93,9 +94,7 @@ def process_array_set(args):
 
 
 def main(path_, arr_wl, baseline_wl):
-    rad_path = os.path.join(path_, '4rad', 'rad.bip')
-
-    ds, rad = tt.readTiff(rad_path)
+    ds, rad = tt.readTiff(os.path.join(path_, '4rad', 'rad.bip')) # type: ignore
     ref = rad2ref.rad2ref(rad, path_)
     ndvi = vd.VegeDivision(60, 100, ref)
     del ref  # 释放变量ref占用的内存
@@ -110,7 +109,7 @@ def main(path_, arr_wl, baseline_wl):
         array_sets.append((arr1, arr2, arr3, string_arg))
 
     # create a multiprocessing pool with number of processes equal to the number of CPU cores
-    pool = Pool(os.cpu_count()-2)
+    pool = Pool(os.cpu_count())
 
     # process each array set in parallel using the pool.map function
     results = pool.map(process_array_set, array_sets)
@@ -122,6 +121,42 @@ def main(path_, arr_wl, baseline_wl):
     tt.writeTiff(ds, rad, os.path.join(path_, '4rad', 'rad_corr.tif'))
 
 
+def center_edge_ref(ref, ndvi, path_, wl_path=r"C:\Users\imFle\OneDrive\resample50178.txt"):
+    up_index = np.array(side.up_sides(ref[100, :, :])).T
+    down_index = np.array(side.down_sides(ref[100, :, :])).T
+    center_index = np.array(side.center_line(ref[100, :, :])).T
+
+    ref_in_vege = ref * ndvi
+    wl = np.loadtxt(wl_path)[:, 0]
+
+    center_ref = ref_in_vege[:, center_index[0], center_index[1]]
+    line1 = np.nonzero(center_ref[0, :])
+    center_ref = np.mean(center_ref[:, line1[0]], axis=1)
+
+    edge_ref = np.hstack((ref_in_vege[:, up_index[0], up_index[1]], ref_in_vege[:, down_index[0], down_index[1]]))
+    line2 = np.nonzero(edge_ref[0, :])
+    edge_ref = np.mean(edge_ref[:, line2[0]], axis=1)
+
+    # plot
+    plt.rc('font', size=13)
+    plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
+    plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
+    fig, ax = plt.subplots(figsize=(8, 4), dpi=200, constrained_layout=1)
+
+    ax.plot(wl, center_ref,
+               label="Center reflectance", linewidth=2,
+               alpha=0.7, solid_capstyle='round', )
+    ax.plot(wl, edge_ref,
+               label="Edge reflectance", linewidth=2,
+               alpha=0.7, solid_capstyle='round', )
+    ax.set_title("Center and edge reflectance of canopy")
+    ax.set_xlabel('Wavelength(nm)')
+    ax.set_ylabel('Reflectance')
+    ax.legend(loc=0)
+    plt.savefig(os.path.join(path_, "5ref", "center_edge_ref.png"))
+    plt.show()
+
+
 def test(path_):
     # 计算ref
     ref = rad2ref.main(path_)
@@ -131,20 +166,22 @@ def test(path_):
     ref_in_vege = ref * ndvi
     np.save(os.path.join(path_, "5ref", "ref_in_vege"), ref_in_vege)
 
-    # 展示ROI中的ref
-    get_roi_ref.main(path_)
+    # 展示中心于边缘的ref
+    center_edge_ref(ref, ndvi, path_)
 
 
 if __name__ == '__main__':
 
-    wavelength = [77, 78,
+    wavelength = [0,
+                  77, 78,
                   87, 88, 89,
                   90,
                   119, 120, 121,
                   128, 129, 130,
                   136, 137,
                   126, 127]  # 校正波段
-    bands = [[74, 81, 82, 83], [74, 81, 82, 83],
+    bands = [[2, 3],
+             [74, 81, 82, 83], [74, 81, 82, 83],
              [84, 85, 90, 91], [84, 85, 90, 91], [84, 85, 90, 91],
              [81, 82, 83, 91, 92, 93, 94],
              [114, 115, 116, 117, 122, 123], [114, 115, 116, 117, 122, 123], [114, 115, 116, 117, 122, 123],
@@ -154,17 +191,17 @@ if __name__ == '__main__':
 
     disk1 = r'D:'
     disk2 = r'E:'
-    path = ["2022_7_5_sunny"]
-    # path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
-    #         "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
-    #         "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",
-    #         "2022_8_9_cloudy", "2022_8_13_cloudy", "2022_8_14_sunny",
-    #         "2022_8_16_sunny", "2022_8_20_sunny", "2022_8_24_cloudy"]
+    # path = ["2022_7_5_sunny"]
+    path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
+            "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
+            "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",
+            "2022_8_9_cloudy", "2022_8_13_cloudy", "2022_8_14_sunny",
+            "2022_8_16_sunny", "2022_8_20_sunny", "2022_8_24_cloudy"]
 
     for i in tqdm(range(len(path))):
         if i < 9:
-            main(os.path.join(disk1, path[i]), wavelength, bands)
+            # main(os.path.join(disk1, path[i]), wavelength, bands)
             test(os.path.join(disk1, path[i]))
         else:
-            main(os.path.join(disk2, path[i]), wavelength, bands)
+            # main(os.path.join(disk2, path[i]), wavelength, bands)
             test(os.path.join(disk2, path[i]))
