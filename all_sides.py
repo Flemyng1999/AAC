@@ -84,7 +84,7 @@ def center_line(img_data):
             del down_side[0:n]
         center_ = []
         for i in range(len(up_side)):
-            center_.append(up_side[i] / 2 + down_side[i] / 2)
+            center_.append((up_side[i] / 2 + down_side[i] / 2).astype(int))
 
     # 南北向条带
     else:
@@ -98,7 +98,7 @@ def center_line(img_data):
             del right_side[0:n]
         center_ = []
         for i in range(len(left_side)):
-            center_.append(left_side[i] / 2 + right_side[i] / 2)
+            center_.append((left_side[i] / 2 + right_side[i] / 2).astype(int))
     return center_
 
 

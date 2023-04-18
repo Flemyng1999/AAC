@@ -154,7 +154,7 @@ if __name__ == '__main__':
 
     disk1 = r'D:'
     disk2 = r'E:'
-    path = ["2022_7_16_sunny"]
+    path = ["2022_7_5_sunny"]
     # path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
     #         "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
     #         "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",

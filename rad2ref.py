@@ -68,10 +68,10 @@ def main(dir_path):
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
     fig, ax = plt.subplots(2, figsize=(8, 8), dpi=300, constrained_layout=1)
 
-    ax[0].plot(target_ref[:, 0], target_rad, label="target_rad")
-    ax[0].plot(target_ref[:, 0], irr, label="irr")
-    ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref")
-    ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref")
+    ax[0].plot(target_ref[:, 0], target_rad, label="target_rad", solid_capstyle='round')
+    ax[0].plot(target_ref[:, 0], irr, label="irr", solid_capstyle='round')
+    ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref", solid_capstyle='round')
+    ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref",solid_capstyle='round')
 
     ax[0].legend(loc=0)
     ax[1].legend(loc=0)
@@ -81,8 +81,8 @@ def main(dir_path):
 
 
 if __name__ == '__main__':
-    disk1 = r'D:'
-    disk2 = r'E:'
+    disk1 = 'D:'
+    disk2 = 'E:'
     path = ["2022_7_16_sunny"]
     # path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
     #         "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
