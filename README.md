@@ -11,7 +11,7 @@ e-mail: flemyng1999@outlook.com
 
 因为Pika-L传感器搭载在UVA平台，一般在距离地面50m的距离获取数据，所以我在最开始处理反射率数据的时候低估了大气吸收的影响，但是在大气吸收波段图像边缘与中心部分出现了明显的区别。
 
-<img src="C:\Users\imFle\OneDrive\Documents\GitHub\AAC\docs\imgs\center_edge.png" alt="center_egde_ref" style="zoom:24%;" />
+<img src="docs\imgs\center_edge.png" alt="center_egde_ref" style="zoom:24%;" />
 
 
 
@@ -19,7 +19,7 @@ e-mail: flemyng1999@outlook.com
 
 矫正之后，反射率数据可用性大幅提高:
 
-<img src="C:\Users\imFle\OneDrive\Documents\GitHub\AAC\docs\imgs\center_edge_corr.png" alt="center_edge_ref_corr" style="zoom:24%;" />
+<img src="docs\imgs\center_edge_corr.png" alt="center_edge_ref_corr" style="zoom:24%;" />
 
 ### 主要思路
 
