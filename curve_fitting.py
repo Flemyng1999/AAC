@@ -34,15 +34,15 @@ def curve(x, y, p, save_path, x_name=None, y_name=None):
     # Plot
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    plt.rc('font', family='Times New Roman', size=10)
-    fig, ax = plt.subplots(constrained_layout=1, figsize=(4, 2.5), dpi=300)
+    plt.rc('font', family='Times New Roman', size=13)
+    fig, ax = plt.subplots(constrained_layout=1, figsize=(8, 4), dpi=300)
     # 设置坐标轴名称
     plt.xlabel(x_name)
     plt.ylabel(y_name)
     plt.scatter(x, y, s=1, alpha=0.003)  # 原始数据散点图
     min_, max_ = np.min(x), np.max(x)
     x_ = np.linspace(min_, max_, 200)
-    plt.plot(x_, p(x_), color='orangered', linewidth=1.5)  # 画拟合曲线
+    plt.plot(x_, p(x_), color='orangered', linewidth=1.5, solid_capstyle='round')  # 画拟合曲线
     plt.tick_params(which='both', direction='in')  # 设置刻度
     # plt.tick_params(which='major', width=line_pixel)  # 单独设置主刻度
     plt.minorticks_on()  # 开启次刻度

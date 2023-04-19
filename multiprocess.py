@@ -1,6 +1,5 @@
 import os
 import math
-from matplotlib import pyplot as plt
 from tqdm import tqdm
 import VegeDivision as vd
 import numpy as np
@@ -8,7 +7,7 @@ import tiff_tool as tt
 import all_pixels as ap
 import curve_fitting as cf
 import rad2ref
-import all_sides as side
+import center_edge_ref as cer
 from multiprocessing import Pool
 
 
@@ -22,7 +21,7 @@ def baseline(part_, bands_):
 # 用于计算系数使用的distance
 def distance(arr, height=80, view_angle=17.6):
     index__, dist_ = ap.pixel_info(arr)
-    long = height * math.tan((view_angle * math.pi) / 360)
+    long = height * math.tan(view_angle * math.pi / 360)
     dist_ = long * dist_ / max(dist_)  # 将地面上的像素距离转化为真实长度
     index__[:, 2] = pow(height ** 2 + dist_ * dist_, 0.5) - height + 1e-6  # 勾股定理将地面距离转化为物体到传感器距离
     # 将实际距离放入二维矩阵
@@ -40,7 +39,8 @@ def beta_coe(o2a, bl, ndvi, save_path):
     # print('Calculating β')
     o2a_ = o2a * ndvi
     baseline_ = bl * ndvi
-    index_, dist = distance(o2a_)
+    index_, d = distance(o2a_)
+    delta_d = np.max(d) - np.min(d)
     rows = list(np.array(index_[:, 0], dtype=int))
     cols = list(np.array(index_[:, 1], dtype=int))
     shape_part_ = np.shape(o2a_)
@@ -50,12 +50,12 @@ def beta_coe(o2a, bl, ndvi, save_path):
     alpha[rows, cols] = o2a_[rows, cols] / baseline_[rows, cols]
 
     # 这是α的多项式拟合值α_
-    index_, d = distance(o2a_)
     y = alpha[alpha > 0]
-    x = dist[dist > 0]
-    p = cf.fitting(x, y, 3, save_path, 'Δ Distance (m)', 'α')  # 计算拟合函数系数并绘制曲线和散点
+    x = d[d > 0]
+    p = cf.fitting(x, y, 5, save_path, 'Δ Distance (m)', 'α')  # 计算拟合函数系数并绘制曲线和散点
 
-    alpha_ = p[3] * np.power(d, 3) + p[2] * np.power(d, 2) + p[1] * d + p[0]
+    alpha_ = (p[5] * np.power(d, 5) + p[4] * np.power(d, 4) + p[3] * np.power(d, 3) + p[2] * np.power(d, 2)
+              + p[1] * d + p[0])
 
     # 计算纠正系数β
     shape = np.shape(o2a_)
@@ -94,7 +94,7 @@ def process_array_set(args):
 
 
 def main(path_, arr_wl, baseline_wl):
-    ds, rad = tt.readTiff(os.path.join(path_, '4rad', 'rad.bip')) # type: ignore
+    ds, rad = tt.readTiff(os.path.join(path_, '4rad', 'rad.bip'))  # type: ignore
     ref = rad2ref.rad2ref(rad, path_)
     ndvi = vd.VegeDivision(60, 100, ref)
     del ref  # 释放变量ref占用的内存
@@ -102,10 +102,10 @@ def main(path_, arr_wl, baseline_wl):
     # create sets of numpy arrays to process
     array_sets = []
     arr3 = ndvi
-    string_arg = path_
     for i_ in range(len(arr_wl)):
         arr1 = rad[arr_wl[i_]]
         arr2 = baseline(rad, baseline_wl[i_])
+        string_arg = os.path.join(path_, '4rad', 'α_{}.png'.format(arr_wl[i_]))
         array_sets.append((arr1, arr2, arr3, string_arg))
 
     # create a multiprocessing pool with number of processes equal to the number of CPU cores
@@ -121,53 +121,16 @@ def main(path_, arr_wl, baseline_wl):
     tt.writeTiff(ds, rad, os.path.join(path_, '4rad', 'rad_corr.tif'))
 
 
-def center_edge_ref(ref, ndvi, path_, wl_path=r"C:\Users\imFle\OneDrive\resample50178.txt"):
-    up_index = np.array(side.up_sides(ref[100, :, :])).T
-    down_index = np.array(side.down_sides(ref[100, :, :])).T
-    center_index = np.array(side.center_line(ref[100, :, :])).T
-
-    ref_in_vege = ref * ndvi
-    wl = np.loadtxt(wl_path)[:, 0]
-
-    center_ref = ref_in_vege[:, center_index[0], center_index[1]]
-    line1 = np.nonzero(center_ref[0, :])
-    center_ref = np.mean(center_ref[:, line1[0]], axis=1)
-
-    edge_ref = np.hstack((ref_in_vege[:, up_index[0], up_index[1]], ref_in_vege[:, down_index[0], down_index[1]]))
-    line2 = np.nonzero(edge_ref[0, :])
-    edge_ref = np.mean(edge_ref[:, line2[0]], axis=1)
-
-    # plot
-    plt.rc('font', size=13)
-    plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
-    plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(figsize=(8, 4), dpi=200, constrained_layout=1)
-
-    ax.plot(wl, center_ref,
-               label="Center reflectance", linewidth=2,
-               alpha=0.7, solid_capstyle='round', )
-    ax.plot(wl, edge_ref,
-               label="Edge reflectance", linewidth=2,
-               alpha=0.7, solid_capstyle='round', )
-    ax.set_title("Center and edge reflectance of canopy")
-    ax.set_xlabel('Wavelength(nm)')
-    ax.set_ylabel('Reflectance')
-    ax.legend(loc=0)
-    plt.savefig(os.path.join(path_, "5ref", "center_edge_ref.png"))
-    plt.show()
-
-
 def test(path_):
     # 计算ref
     ref = rad2ref.main(path_)
-
     # 计算VegeDivision
-    ndvi = vd.VegeDivision(60, 100, ref)
+    ndvi = vd.VegeDivision(60, 100, ref, True)
     ref_in_vege = ref * ndvi
     np.save(os.path.join(path_, "5ref", "ref_in_vege"), ref_in_vege)
 
     # 展示中心于边缘的ref
-    center_edge_ref(ref, ndvi, path_)
+    cer.main(path_)
 
 
 if __name__ == '__main__':
@@ -191,17 +154,17 @@ if __name__ == '__main__':
 
     disk1 = r'D:'
     disk2 = r'E:'
-    # path = ["2022_7_5_sunny"]
-    path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
-            "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
-            "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",
-            "2022_8_9_cloudy", "2022_8_13_cloudy", "2022_8_14_sunny",
-            "2022_8_16_sunny", "2022_8_20_sunny", "2022_8_24_cloudy"]
+    path = ["2022_7_5_sunny"]
+    # path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
+    #         "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
+    #         "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",
+    #         "2022_8_9_cloudy", "2022_8_13_cloudy", "2022_8_14_sunny",
+    #         "2022_8_16_sunny", "2022_8_20_sunny", "2022_8_24_cloudy"]
 
     for i in tqdm(range(len(path))):
         if i < 9:
-            # main(os.path.join(disk1, path[i]), wavelength, bands)
+            main(os.path.join(disk1, path[i]), wavelength, bands)
             test(os.path.join(disk1, path[i]))
         else:
-            # main(os.path.join(disk2, path[i]), wavelength, bands)
+            main(os.path.join(disk2, path[i]), wavelength, bands)
             test(os.path.join(disk2, path[i]))

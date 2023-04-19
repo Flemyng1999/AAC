@@ -33,20 +33,20 @@ def rad2ref(rad, dir_path):
     irr_ = irr.reshape((150, 1, 1))
     ref = (rad / irr_).astype(np.float32)
 
-    # plot
-    plt.rc('font', size=13)
-    plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
-    plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(2, figsize=(8, 8), dpi=100, constrained_layout=1)
-
-    ax[0].plot(target_ref[:, 0], target_rad, label="target_rad")
-    ax[0].plot(target_ref[:, 0], irr, label="irr")
-    ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref")
-    ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref")
-
-    ax[0].legend(loc=0)
-    ax[1].legend(loc=0)
-    plt.show()
+    # # plot
+    # plt.rc('font', size=13)
+    # plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
+    # plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
+    # fig, ax = plt.subplots(2, figsize=(8, 8), dpi=100, constrained_layout=1)
+    #
+    # ax[0].plot(target_ref[:, 0], target_rad, label="target_rad")
+    # ax[0].plot(target_ref[:, 0], irr, label="irr")
+    # ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref")
+    # ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref")
+    #
+    # ax[0].legend(loc=0)
+    # ax[1].legend(loc=0)
+    # plt.show()
 
     return ref
 
@@ -62,20 +62,20 @@ def main(dir_path):
     ref = (rad / irr_).astype(np.float32)
     tt.writeTiff(ds, ref, os.path.join(dir_path, "5ref", "ref.bip"))
 
-    # plot
-    plt.rc('font', size=13)
-    plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
-    plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(2, figsize=(8, 8), dpi=100, constrained_layout=1)
-
-    ax[0].plot(target_ref[:, 0], target_rad, label="target_rad", solid_capstyle='round')
-    ax[0].plot(target_ref[:, 0], irr, label="irr", solid_capstyle='round')
-    ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref", solid_capstyle='round')
-    ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref",solid_capstyle='round')
-
-    ax[0].legend(loc=0)
-    ax[1].legend(loc=0)
-    plt.show()
+    # # plot
+    # plt.rc('font', size=13)
+    # plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
+    # plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
+    # fig, ax = plt.subplots(2, figsize=(8, 8), dpi=200, constrained_layout=1)
+    #
+    # ax[0].plot(target_ref[:, 0], target_rad, label="target_rad", solid_capstyle='round')
+    # ax[0].plot(target_ref[:, 0], irr, label="irr", solid_capstyle='round')
+    # ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref", solid_capstyle='round')
+    # ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref",solid_capstyle='round')
+    #
+    # ax[0].legend(loc=0)
+    # ax[1].legend(loc=0)
+    # plt.show()
 
     return ref
 

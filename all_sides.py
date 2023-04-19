@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import tiff_tool as tt
 
@@ -102,26 +104,45 @@ def center_line(img_data):
     return center_
 
 
+def test(path):
+    arr_data = tt.readTiffArray(os.path.join(path, "4rad", "rad.bip"))
+    r = arr_data[59, :, :]
+    g = arr_data[36, :, :]
+    b = arr_data[18, :, :]
+    # 将三个数组组合为一个(1000, 1000, 3)的数组
+    arr = np.stack((r, g, b), axis=-1)
+    # 归一化
+    nonzero_idx = arr.nonzero()  # 找到所有非0元素的索引
+    min_value = arr[nonzero_idx].min()  # 计算最小的非0值
+    max_value = np.max(arr)
+    arr = (arr - min_value) / (max_value - min_value)
+    arr[arr <= 0] = 1
+    arr = np.power(arr, 0.5)
+
+    up = up_sides(r)
+    down = down_sides(r)
+    left = left_sides(r)
+    right = right_sides(r)
+    center = center_line(r)
+
+    # plot
+    import matplotlib.pyplot as plt
+    plt.rc('font', size=13)
+    plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
+    plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=300, constrained_layout=1)
+
+    ax.imshow(arr)
+    ax.plot([i[1] for i in up], [i[0] for i in up], 'r')
+    ax.plot([i[1] for i in down], [i[0] for i in down], 'r')
+    ax.plot([i[1] for i in left], [i[0] for i in left], 'r')
+    ax.plot([i[1] for i in right], [i[0] for i in right], 'r')
+    ax.plot([i[1] for i in center], [i[0] for i in center], 'r')
+    ax.axis('off')
+    plt.savefig(os.path.join(path, "4rad", "outlines.png"), dpi=300)
+    plt.show()
+
+
 if __name__ == "__main__":
-    path_ = r"D:\2022_7_20_sunny\4rad\rad.bip"
-    arr_data = tt.readTiffArray(path_)
-    dist_arr = arr_data[100, :, :]
-
-    up = up_sides(dist_arr)
-    down = down_sides(dist_arr)
-
-    left = left_sides(dist_arr)
-    right = right_sides(dist_arr)
-
-    center = center_line(dist_arr)
-    # x = np.ones((min(len(left), len(right)), min(len(up), len(down))))
-    # y = np.ones((min(len(left), len(right)), min(len(up), len(down))))
-    #
-    # for i in range(min(len(left), len(right))):
-    #     up_ = np.transpose(up)
-    #     x[i] = up_[0]
-    #     y[i] = up_[1]
-    #     up = up_sides(arr_data)
-    #     if len(up) > length0:
-    #         n = len(up) - length0
-    #         del up[-n - 1:-1]
+    path_ = r"D:\2022_7_20_sunny"
+    test(path_)

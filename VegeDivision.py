@@ -30,7 +30,8 @@ def yyy(N, array):
 
 
 # 使用NDVI自动分离植被
-def VegeDivision(red, nir, img_data, save_path="plot.png"):
+def VegeDivision(red, nir, img_data, if_show=False, save_path="plot.png"):
+    up_limit = None
     red_band = (img_data[red - 2] + img_data[red - 1] + img_data[red]) / 3
     nir_band = (img_data[nir - 2] + img_data[nir - 1] + img_data[nir]) / 3
     red_band, nir_band = red_band.astype(np.float64), nir_band.astype(np.float64)
@@ -53,36 +54,41 @@ def VegeDivision(red, nir, img_data, save_path="plot.png"):
         for i in range(a1_i.size):
             candy = int(a1_i[i])
             if a2 < candy < a1:
-                up_lim = candy
+                up_limit = candy
     else:
-        up_lim = int(a1_i[0])
-    a4 = yyy(a3, y[int(a2_i[0]):up_lim])
+        up_limit = int(a1_i[0])
+    a4 = yyy(a3, y[int(a2_i[0]):up_limit])
 
     th = x[xxx(a4, y)]  # 计算阈值
-
-    plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
-    plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    plt.rc('font', family='Times New Roman', size=10)
-    fig, axe = plt.subplots(2, constrained_layout=1, figsize=(4, 5.5), dpi=300)
-
-    axe[0].plot(x, y)
-    axe[0].scatter(th, y[xxx(th, x)], c='r', zorder=5)
-    axe[0].set_ylabel('Times')
-
-    # print('\n' + 'NDVI Threshold is ' + str(th))
-
     ndvi_[ndvi_ >= th] = 1  # 大于等于阈值设为1
     ndvi_[ndvi_ < th] = 0  # 小于阈值设为0
+    # print('\n' + 'NDVI Threshold is ' + str(th))
 
-    axe[1].imshow(ndvi_)
-    axe[1].set_xlabel('NDVI')
-    # plt.savefig(save_path)
-    plt.show()
+    if if_show:
+        plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
+        plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
+        plt.rc('font', family='Times New Roman', size=10)
+        fig, axe = plt.subplots(2, constrained_layout=1, figsize=(4, 5.5), dpi=300)
+
+        axe[0].plot(x, y)
+        axe[0].scatter(th, y[xxx(th, x)], c='r', zorder=5)
+        axe[0].set_xlabel('NDVI')
+        axe[0].set_ylabel('Count')
+
+        axe[1].imshow(ndvi_)
+        axe[1].set_xlabel('NDVI')
+        axe[1].axis('off')
+        # plt.savefig(save_path)
+        plt.show()
+    else:
+        plt.close()
+
     return ndvi_
 
 
 # 使用RGB自动分离阴阳叶
 def VegeDivision_2(r, g, b, img_data):
+    up_lim = None
     r_band = (img_data[r - 2] + img_data[r - 1] + img_data[r]) / 3
     g_band = (img_data[g - 2] + img_data[g - 1] + img_data[g]) / 3
     b_band = (img_data[b - 2] + img_data[b - 1] + img_data[b]) / 3
