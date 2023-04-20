@@ -108,7 +108,7 @@ def main(path_, arr_wl, baseline_wl):
         array_sets.append((arr1, arr2, arr3, string_arg))
 
     # create a multiprocessing pool with number of processes equal to the number of CPU cores
-    pool = Pool(os.cpu_count())
+    pool = Pool(os.cpu_count()-1)
 
     # process each array set in parallel using the pool.map function
     results = pool.map(process_array_set, array_sets)
@@ -116,6 +116,9 @@ def main(path_, arr_wl, baseline_wl):
     # replace the results for each set of arrays to [rad] in the original array
     for j, result in enumerate(results):
         rad[arr_wl[j]] = result
+
+    pool.close()
+    pool.join()
 
     tt.write_tif(os.path.join(path_, '4rad', 'rad_corr.tif'), rad, geo, proj)  # type: ignore
 
@@ -163,7 +166,11 @@ if __name__ == '__main__':
     for i in tqdm(range(len(path))):
         if i < 9:
             main(os.path.join(disk1, path[i]), wavelength, bands)
-            test(os.path.join(disk1, path[i]))
         else:
             main(os.path.join(disk2, path[i]), wavelength, bands)
+    print("\n_________Test Begin_________\n")
+    for i in tqdm(range(len(path))):
+        if i < 9:
+            test(os.path.join(disk1, path[i]))
+        else:
             test(os.path.join(disk2, path[i]))
