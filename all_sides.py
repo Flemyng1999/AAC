@@ -105,7 +105,7 @@ def center_line(img_data):
 
 
 def test(path):
-    arr_data = tt.readTiffArray(os.path.join(path, "4rad", "rad.bip"))
+    arr_data = tt.read_tif_array(os.path.join(path, "4rad", "rad.bip"))
     r = arr_data[59, :, :]
     g = arr_data[36, :, :]
     b = arr_data[18, :, :]

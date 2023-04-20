@@ -27,7 +27,7 @@ def read_target(txt_path):
 def rad2ref(rad, dir_path):
     # [dir_path] is ONLY for target_rad
     target_rad = read_target(os.path.join(dir_path, "4rad", "rad_target.txt"))
-    target_ref = np.loadtxt(r"C:\Users\imFle\OneDrive\resample50178.txt", dtype=np.float32)
+    target_ref = np.loadtxt(os.path.join("docs", "resample50178.txt"), dtype=np.float32)
 
     irr = target_rad / target_ref[:, 1]
     irr_ = irr.reshape((150, 1, 1))
@@ -51,31 +51,34 @@ def rad2ref(rad, dir_path):
     return ref
 
 
-def main(dir_path):
+def main(dir_path, img_show=False):
     # data
-    ds, rad = tt.readTiff(os.path.join(dir_path, "4rad", "rad_corr.tif")) # type: ignore
+    rad, geo, proj = tt.read_tif(os.path.join(dir_path, "4rad", "rad_corr.tif")) # type: ignore
     target_rad = read_target(os.path.join(dir_path, "4rad", "rad_target.txt"))
-    target_ref = np.loadtxt(r"C:\Users\imFle\OneDrive\resample50178.txt", dtype=np.float32)
+    target_ref = np.loadtxt(os.path.join("docs", "resample50178.txt"), dtype=np.float32)
 
     irr = target_rad / target_ref[:, 1]
     irr_ = irr.reshape((150, 1, 1))
     ref = (rad / irr_).astype(np.float32)
-    tt.writeTiff(ds, ref, os.path.join(dir_path, "5ref", "ref.bip"))
+    tt.write_tif(os.path.join(dir_path, "5ref", "ref.bip"), ref, geo, proj)
 
-    # # plot
-    # plt.rc('font', size=13)
-    # plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
-    # plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    # fig, ax = plt.subplots(2, figsize=(8, 8), dpi=200, constrained_layout=1)
-    #
-    # ax[0].plot(target_ref[:, 0], target_rad, label="target_rad", solid_capstyle='round')
-    # ax[0].plot(target_ref[:, 0], irr, label="irr", solid_capstyle='round')
-    # ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref", solid_capstyle='round')
-    # ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref",solid_capstyle='round')
-    #
-    # ax[0].legend(loc=0)
-    # ax[1].legend(loc=0)
-    # plt.show()
+    # plot
+    if img_show:
+        plt.rc('font', size=13)
+        plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
+        plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
+        fig, ax = plt.subplots(2, figsize=(8, 8), dpi=200, constrained_layout=1)
+
+        ax[0].plot(target_ref[:, 0], target_rad, label="target_rad", solid_capstyle='round')
+        ax[0].plot(target_ref[:, 0], irr, label="irr", solid_capstyle='round')
+        ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref", solid_capstyle='round')
+        ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref",solid_capstyle='round')
+
+        ax[0].legend(loc=0)
+        ax[1].legend(loc=0)
+        plt.show()
+    else:
+        plt.close()
 
     return ref
 
@@ -83,7 +86,7 @@ def main(dir_path):
 if __name__ == '__main__':
     disk1 = 'D:'
     disk2 = 'E:'
-    path = ["2022_7_16_sunny"]
+    path = ["2022_7_5_sunny"]
     # path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
     #         "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
     #         "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",
@@ -92,8 +95,8 @@ if __name__ == '__main__':
 
     for i in range(len(path)):
         if i < 9:
-            main(os.path.join(disk1, path[i]))
+            ref = main(os.path.join(disk1, path[i]), True)
         else:
-            main(os.path.join(disk2, path[i]))
+            ref = main(os.path.join(disk2, path[i]))
     # path = r"D:\2022_7_5_sunny"
     # main(path)

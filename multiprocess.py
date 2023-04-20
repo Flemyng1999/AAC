@@ -14,7 +14,7 @@ from multiprocessing import Pool
 def baseline(part_, bands_):
     # print('Generating baseline...')
     all_baseline = part_[bands_]
-    baseline_ = np.mean(all_baseline, axis=0, dtype=np.float64)  # 计算所有bands上的平均值
+    baseline_ = np.mean(all_baseline, axis=0)  # 计算所有bands上的平均值
     return baseline_
 
 
@@ -40,7 +40,6 @@ def beta_coe(o2a, bl, ndvi, save_path):
     o2a_ = o2a * ndvi
     baseline_ = bl * ndvi
     index_, d = distance(o2a_)
-    delta_d = np.max(d) - np.min(d)
     rows = list(np.array(index_[:, 0], dtype=int))
     cols = list(np.array(index_[:, 1], dtype=int))
     shape_part_ = np.shape(o2a_)
@@ -94,7 +93,7 @@ def process_array_set(args):
 
 
 def main(path_, arr_wl, baseline_wl):
-    ds, rad = tt.readTiff(os.path.join(path_, '4rad', 'rad.bip'))  # type: ignore
+    rad, geo, proj = tt.read_tif(os.path.join(path_, '4rad', 'rad.bip'))  # type: ignore
     ref = rad2ref.rad2ref(rad, path_)
     ndvi = vd.VegeDivision(60, 100, ref)
     del ref  # 释放变量ref占用的内存
@@ -118,14 +117,14 @@ def main(path_, arr_wl, baseline_wl):
     for j, result in enumerate(results):
         rad[arr_wl[j]] = result
 
-    tt.writeTiff(ds, rad, os.path.join(path_, '4rad', 'rad_corr.tif'))
+    tt.write_tif(os.path.join(path_, '4rad', 'rad_corr.tif'), rad, geo, proj)  # type: ignore
 
 
 def test(path_):
     # 计算ref
     ref = rad2ref.main(path_)
     # 计算VegeDivision
-    ndvi = vd.VegeDivision(60, 100, ref, True)
+    ndvi = vd.VegeDivision(60, 100, ref)
     ref_in_vege = ref * ndvi
     np.save(os.path.join(path_, "5ref", "ref_in_vege"), ref_in_vege)
 
@@ -152,8 +151,8 @@ if __name__ == '__main__':
              [132, 133, 134, 138, 139, 140, 141], [132, 133, 134, 138, 139, 140, 141],
              [114, 115, 116, 117, 139, 140, 141, 142], [114, 115, 116, 117, 139, 140, 141, 142]]  # 作为基线的参考波段
 
-    disk1 = r'D:'
-    disk2 = r'E:'
+    disk1 = 'D:'
+    disk2 = 'E:'
     path = ["2022_7_5_sunny"]
     # path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
     #         "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",

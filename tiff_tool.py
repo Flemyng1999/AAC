@@ -1,33 +1,37 @@
+import os
+
 from osgeo import gdal
 import numpy as np
+import time
 
 
 # 简单读取文件
-def readTiff(file, datatype=np.float32):
-    data_set = gdal.Open(file, gdal.GA_ReadOnly)
-    if data_set is None:
-        print(file + "文件无法打开")
+def read_tif(file_path):
+    # Open the file using gdal
+    ds = gdal.Open(file_path)
+    if ds is None:
+        print(file_path + "file can't open")
         return
-    img_width = data_set.RasterXSize
-    img_height = data_set.RasterYSize
-    img_data = data_set.ReadAsArray(0, 0, img_width, img_height)
-    img_data = img_data.astype(datatype)
-    return data_set, img_data
 
+    # Get the image size
+    width = ds.RasterXSize
+    height = ds.RasterYSize
 
-# 简单读取文件，返回投影、仿射矩阵
-def readPG(file, datatype=np.float32):
-    data_set = gdal.Open(file, gdal.GA_ReadOnly)
-    if data_set is None:
-        print(file + "文件无法打开")
-        return
-    im_proj = data_set.GetProjection()  # 获取投影信息
-    im_geotrans = data_set.GetGeoTransform()  # 获取仿射矩阵信息
-    return im_proj, im_geotrans
+    # Read the data into numpy arrays
+    data_ = ds.ReadAsArray(0, 0, width, height)
+
+    # Get the geotransform and projection information
+    geotransform_ = ds.GetGeoTransform()
+    projection_ = ds.GetProjection()
+
+    # Close the gdal dataset
+    del ds
+
+    return data_, geotransform_, projection_
 
 
 # 简单读取文件，只返回数组
-def readTiffArray(file, datatype=np.float32):
+def read_tif_array(file):
     data_set = gdal.Open(file, gdal.GA_ReadOnly)
     if data_set is None:
         print(file + "文件无法打开")
@@ -36,94 +40,60 @@ def readTiffArray(file, datatype=np.float32):
     img_width = data_set.RasterXSize
     img_height = data_set.RasterYSize
     img_data = data_set.ReadAsArray(0, 0, img_width, img_height)
-    img_data = img_data.astype(datatype)
+    del data_set
     return img_data
 
 
-# 简单读取文件，只返回数据
-def readTiffData(file, datatype=np.float32):
-    data_set = gdal.Open(file, gdal.GA_ReadOnly)
-    if data_set is None:
-        print(file + "文件无法打开")
-        return
-    return data_set
-
-
 # 写入新tiff
-def writeTiff(data_set_1, img_data, save_path):
-    min_ = np.min(img_data)
-    max_ = np.max(img_data)
-    if max_ <= 4000:
-        datatype = gdal.GDT_Float32
-    elif min_ >= 0 and max_ > 4000:
-        datatype = gdal.GDT_Int32
+def write_tif(save_path, data_, geotransform_, projection_):
+    # set dtype by its size and range
+    min_value = np.min(data_)
+    max_value = np.max(data_)
+
+    if min_value >= 0 and 1024 <= max_value < 65535:
+        output_dtype = gdal.GDT_UInt16
+    elif -32768 < min_value <= -1024 and max_value < 32767:
+        output_dtype = gdal.GDT_Int16
     else:
-        datatype = gdal.GDT_Float32
+        output_dtype = gdal.GDT_Float32
 
-    im_proj = data_set_1.GetProjection()  # 获取投影信息
-    im_geotrans = data_set_1.GetGeoTransform()  # 获取仿射矩阵信息
-
-    if len(img_data.shape) == 3:
-        im_bands, im_height, im_width = img_data.shape
-    elif len(img_data.shape) == 2:
-        im_height, im_width = img_data.shape
+    if len(data_.shape) == 3:
+        im_bands, im_height, im_width = data_.shape
+    elif len(data_.shape) == 2:
+        im_height, im_width = data_.shape
         im_bands = 1
     else:
-        im_height, im_width = img_data.shape
+        im_height, im_width = data_.shape
         im_bands = 1
 
     # 创建文件
     driver = gdal.GetDriverByName("GTiff")
-    new_dataset = driver.Create(save_path, im_width, im_height, im_bands, datatype)
+    new_dataset = driver.Create(save_path, im_width, im_height, im_bands, output_dtype)
 
     if new_dataset is not None:
-        new_dataset.SetGeoTransform(im_geotrans)  # 写入仿射变换参数
-        new_dataset.SetProjection(im_proj)  # 写入投影
+        new_dataset.SetGeoTransform(geotransform_)  # 写入仿射变换参数
+        new_dataset.SetProjection(projection_)  # 写入投影
 
     if im_bands == 1:  # 单层tif
-        new_dataset.GetRasterBand(1).WriteArray(img_data)
+        new_dataset.GetRasterBand(1).WriteArray(data_)
     else:
         for i in range(im_bands):  # 多层tif（超立方）
-            new_dataset.GetRasterBand(i+1).WriteArray(img_data[i])
-    del new_dataset
-
-
-# 写入新tiff
-def writeTiff_SE(im_proj, im_geotrans, img_data, save_path):
-    # min_ = np.min(img_data)
-    # max_ = np.max(img_data)
-    # if max_ <= 4000:
-    #     datatype = gdal.GDT_Float32
-    # elif min_ >= 0 and max_ > 4000:
-    #     datatype = gdal.GDT_Int64
-    # else:
-    #     datatype = gdal.GDT_Float32
-
-    if len(img_data.shape) == 3:
-        im_bands, im_height, im_width = img_data.shape
-    elif len(img_data.shape) == 2:
-        im_height, im_width = img_data.shape
-        im_bands = 1
-    else:
-        im_height, im_width = img_data.shape
-        im_bands = 1
-
-    # 创建文件
-    driver = gdal.GetDriverByName("GTiff")
-    new_dataset = driver.Create(save_path, im_width, im_height, im_bands, gdal.GDT_UInt16)
-
-    if new_dataset is not None:
-        new_dataset.SetGeoTransform(im_geotrans)  # 写入仿射变换参数
-        new_dataset.SetProjection(im_proj)  # 写入投影
-
-    if im_bands == 1:  # 单层tif
-        new_dataset.GetRasterBand(1).WriteArray(img_data)
-    else:
-        for i in range(im_bands):  # 多层tif（超立方）
-            new_dataset.GetRasterBand(i+1).WriteArray(img_data[i])
-    del new_dataset
+            new_dataset.GetRasterBand(i+1).WriteArray(data_[i])
+    del new_dataset, driver, data_
 
 
 if __name__ == '__main__':
-    dataset, arr = readTiff(r"D:\2022_8_14_sunny\4rad\rad.bip")
-    writeTiff(dataset, arr, r"D:\2022_8_14_sunny\4rad\rad111.bip")
+    # Example usage
+    dir_path = r"D:\2022_7_5_sunny"
+    input_file = os.path.join(dir_path, "4rad", "rad.bip")
+    output_file = os.path.join(dir_path, "4rad", "rad_readwrite_demo.bip")
+
+    s_t = time.time()
+    data, geotransform, projection = read_tif(input_file)
+    e_t = time.time()
+    print("Read tif took {} seconds".format(e_t - s_t))
+
+    s_t = time.time()
+    write_tif(output_file, data, geotransform, projection)
+    e_t = time.time()
+    print("Write tif took {} seconds".format(e_t - s_t))

@@ -26,9 +26,9 @@ def read_target(txt_path):
     return array
 
 
-def sif(rad_):
+def sif(rad_, path_):
     # 寻找3个波段
-    irr = read_target(r"D:\2022_7_13_cloudy\4rad\rad_target.txt")
+    irr = read_target(os.path.join(path_, "4rad", "rad_target.txt"))
     list_irr = irr.tolist()  # 转为List
     E_min = min(list_irr[30:100])  # 返回最小值
     s_in = list_irr.index(E_min)  # 返回最小值的索引
@@ -59,11 +59,11 @@ def new_colormap(colormap, max_=1, min_=0, N=2560):
 
 
 def main(path_):
-    rad = tt.readTiffArray(os.path.join(path_, "4rad", "rad_corr.tif"))
+    rad = tt.read_tif_array(os.path.join(path_, "4rad", "rad_corr.tif"))
     ref = rad2ref.rad2ref(rad, path_)
     ndvi = vd.VegeDivision(60, 100, ref)
     ref_in_vege = ref * ndvi
-    wl = np.loadtxt(r"C:\Users\imFle\OneDrive\resample50178.txt")[:, 0]
+    wl = np.loadtxt(os.path.join("docs", "resample50178.txt"))[:, 0]
 
     up_index = np.array(side.up_sides(ref[100, :, :])).T
     down_index = np.array(side.down_sides(ref[100, :, :])).T
@@ -77,7 +77,7 @@ def main(path_):
     line2 = np.nonzero(edge_ref[0, :])
     edge_ref = np.mean(edge_ref[:, line2[0]], axis=1)
 
-    flu = sif(rad)
+    flu = sif(rad, path_)
 
     up = side.up_sides(flu)
     down = side.down_sides(flu)
@@ -86,10 +86,10 @@ def main(path_):
     center = side.center_line(flu)
 
     # plot
-    plt.rc('font', size=13)
+    # plt.rc('font', size=13)
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(2, figsize=(8, 9), dpi=300, constrained_layout=1)
+    fig, ax = plt.subplots(2, figsize=(8, 9), dpi=200, constrained_layout=1)
 
     ax[0].plot(wl, center_ref,
                label="Center reflectance", linewidth=2,

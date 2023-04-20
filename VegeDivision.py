@@ -30,7 +30,7 @@ def yyy(N, array):
 
 
 # 使用NDVI自动分离植被
-def VegeDivision(red, nir, img_data, if_show=False, save_path="plot.png"):
+def VegeDivision(red, nir, img_data, if_show=False):
     up_limit = None
     red_band = (img_data[red - 2] + img_data[red - 1] + img_data[red]) / 3
     nir_band = (img_data[nir - 2] + img_data[nir - 1] + img_data[nir]) / 3
@@ -67,8 +67,8 @@ def VegeDivision(red, nir, img_data, if_show=False, save_path="plot.png"):
     if if_show:
         plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
         plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-        plt.rc('font', family='Times New Roman', size=10)
-        fig, axe = plt.subplots(2, constrained_layout=1, figsize=(4, 5.5), dpi=300)
+        # plt.rc('font', family='Times New Roman', size=10)
+        fig, axe = plt.subplots(2, constrained_layout=1, figsize=(7, 9), dpi=200)
 
         axe[0].plot(x, y)
         axe[0].scatter(th, y[xxx(th, x)], c='r', zorder=5)
@@ -120,7 +120,7 @@ def VegeDivision_2(r, g, b, img_data):
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
     plt.rc('font', family='Times New Roman', size=10)
-    fig, ax = plt.subplots(2, constrained_layout=1, figsize=(4, 5.5), dpi=300)
+    fig, ax = plt.subplots(2, constrained_layout=1, figsize=(4, 5.5), dpi=200)
     ax[0].plot(x, y)
     ax[0].scatter(th, y[xxx(th, x)], c='r')
     ax[0].set_ylabel('Times')
@@ -141,12 +141,12 @@ def main(path_):
 
     vi = ["ndvi", "nirv", "fcvi", "sif", "APAR"]
 
-    dataset, im_data = tt.readTiff(os.path.join(path_, "5ref", "ref.bip"))  # type: ignore # 读取地表反射率文件
+    im_data, geo, proj = tt.read_tif(os.path.join(path_, "5ref", "ref.bip"))  # type: ignore # 读取地表反射率文件
     mask = VegeDivision(60, 100, im_data)
     shadow = VegeDivision_2(59, 38, 16, im_data)
 
     ref = im_data * mask * shadow
-    tt.writeTiff(dataset, ref, os.path.join(path_, "5ref", "ref_in_vege.tif"))
+    tt.write_tif(os.path.join(path_, "5ref", "ref_in_vege.tif"), ref, geo, proj)  # type: ignore # 保存地表反射率文件
 
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
@@ -163,12 +163,13 @@ def main(path_):
 
     for i in vi:
         print('Cutting ' + i + ' ...')
-        VI = tt.readTiffArray(os.path.join(path_, "VIs", i+".tif"))
+        VI = tt.read_tif_array(os.path.join(path_, "VIs", i+".tif"))
         new_vi = VI * mask * shadow
-        tt.writeTiff(dataset, new_vi, os.path.join(path_, "VIs", i+"_in_vege.tif"))
+        tt.write_tif(os.path.join(path_, "VIs", i+"_in_vege.tif"), new_vi, geo, proj)  # type: ignore # 保存地表反射率文件
 
 
 # 主函数
 if __name__ == '__main__':
     path = r"E:\2022_8_14_sunny"
-    VegeDivision(60, 100, path)
+    ref = tt.read_tif_array(os.path.join(path, "5ref", "ref.bip"))
+    VegeDivision(60, 100, ref, True)

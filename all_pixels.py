@@ -30,5 +30,5 @@ if __name__ == "__main__":
     tif_name = "rad_part.bip"
 
     # data
-    array = tt.readTiffArray(os.path.join(dir_path, "4rad", tif_name))
+    array = tt.read_tif_array(os.path.join(dir_path, "4rad", tif_name))
     index_, dist_ = pixel_info(array[100, :, :])

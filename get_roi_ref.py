@@ -24,7 +24,7 @@ def main(dir_path):
     if len(roi_name) != 20:
         roi_name_ = get_name(roi_path, ".tif")
         for i_ in roi_name_:
-            tif = tt.readTiffArray(i_)
+            tif = tt.read_tif(i_)
             np.save(i_.replace(".tif", ""), tif)
 
         roi_path = os.path.join(dir_path, "ROI")
