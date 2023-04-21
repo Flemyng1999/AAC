@@ -103,7 +103,7 @@ def process_array_set(args):
     return result
 
 
-@ram_monitor
+# @ram_monitor
 def main(path_, arr_wl, baseline_wl):
     if not os.path.exists(os.path.join(path_, "5ref", "ndvi.npy")):
         # 目标文件不存在
@@ -141,7 +141,7 @@ def main(path_, arr_wl, baseline_wl):
     del rad, ndvi  # 释放变量rad和ndvi占用的内存
 
 
-@ram_monitor
+# @ram_monitor
 def test(path_):
     # 计算ref
     s_t = time.time()
@@ -191,26 +191,26 @@ if __name__ == '__main__':
         disk1 = 'D:'
         disk2 = 'E:'
     elif sys.platform == "darwin":
-        disk1 = os.path.join('Volumns', 'HyperSpec')
-        disk2 = os.path.join('Volumns', 'HyperSpec')
+        disk1 = os.path.join('/Volumes', 'HyperSpec')
+        disk2 = os.path.join('/Volumes', 'HyperSpec')
     else: # 默认为 Linux
-        disk1 = os.path.join('Volumns', 'HyperSpec')
-        disk2 = os.path.join('Volumns', 'HyperSpec')
-    # path = ["2022_7_5_sunny"]
-    path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
-            "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
-            "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",
-            "2022_8_9_cloudy", "2022_8_13_cloudy", "2022_8_14_sunny",
-            "2022_8_16_sunny", "2022_8_20_sunny", "2022_8_24_cloudy"]
+        disk1 = os.path.join('/Volumes', 'HyperSpec')
+        disk2 = os.path.join('/Volumes', 'HyperSpec')
+    path = ["2022_7_5_sunny"]
+    # path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
+    #         "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
+    #         "2022_7_23_sunny", "2022_7_27_sunny", "2022_8_2_sunny",
+    #         "2022_8_9_cloudy", "2022_8_13_cloudy", "2022_8_14_sunny",
+    #         "2022_8_16_sunny", "2022_8_20_sunny", "2022_8_24_cloudy"]
 
     for i in tqdm(range(len(path))):
         if i < 9:
             main(os.path.join(disk1, path[i]), wavelength, bands)
         else:
             main(os.path.join(disk2, path[i]), wavelength, bands)
-    # print("\n_________Test Begin_________\n")
-    # for i in tqdm(range(len(path))):
-    #     if i < 9:
-    #         test(os.path.join(disk1, path[i]))
-    #     else:
-    #         test(os.path.join(disk2, path[i]))
+    print("\n_________Test Begin_________\n")
+    for i in tqdm(range(len(path))):
+        if i < 9:
+            test(os.path.join(disk1, path[i]))
+        else:
+            test(os.path.join(disk2, path[i]))

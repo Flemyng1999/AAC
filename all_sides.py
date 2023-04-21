@@ -131,7 +131,7 @@ def outlines(path):
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
     fig, ax = plt.subplots(figsize=(8, 5), dpi=150, constrained_layout=1)
 
-    my_cmap = plt.get_cmap('gray', 5)  # type: ignore # 设置colormap，数字为颜色数量
+    my_cmap = plt.get_cmap('rainbow', 5)  # type: ignore # 设置colormap，数字为颜色数量
     ax.imshow(arr)
     ax.plot([i[1] for i in up], [i[0] for i in up], color=my_cmap(0), alpha=0.7, solid_capstyle='round')
     ax.plot([i[1] for i in down], [i[0] for i in down], color=my_cmap(1), alpha=0.7, solid_capstyle='round')

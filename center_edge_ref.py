@@ -77,18 +77,13 @@ def new_colormap(colormap, max_=1, min_=0, N=2560):
     return new_cmp
 
 
-@ram_monitor
 def main(path_:str):
     rad = tt.read_tif_array(os.path.join(path_, "4rad", "rad_corr.tif"))
     up_index = np.array(side.up_sides(rad[100, :, :])).T
     down_index = np.array(side.down_sides(rad[100, :, :])).T
     center_index = np.array(side.center_line(rad[100, :, :])).T
     del rad
-    print("del rad")
-
-    print("SIF begin")
-    flu = sif(tt.read_tif_array(os.path.join(path_, "4rad", "rad_corr.tif")), path_)
-    print("SIF end")
+    # print("del rad")
 
     ref_in_vege = np.load(os.path.join(path_, "5ref", "ref_in_vege.npy"))
     center_ref = ref_in_vege[:, center_index[0], center_index[1]]
@@ -97,10 +92,13 @@ def main(path_:str):
 
     edge_ref = np.hstack((ref_in_vege[:, up_index[0], up_index[1]], ref_in_vege[:, down_index[0], down_index[1]]))
     del ref_in_vege
-    print("del ref_in_vege")
+    # print("del ref_in_vege")
     line2 = np.nonzero(edge_ref[0, :])
     edge_ref = np.mean(edge_ref[:, line2[0]], axis=1)
 
+    # print("SIF begin")
+    flu = sif(tt.read_tif_array(os.path.join(path_, "4rad", "rad_corr.tif")), path_)
+    # print("SIF end")
     up = side.up_sides(flu)
     down = side.down_sides(flu)
     left = side.left_sides(flu)
