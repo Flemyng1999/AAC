@@ -1,12 +1,11 @@
 import os
-
 from osgeo import gdal
 import numpy as np
 import time
 
 
 # 简单读取文件
-def read_tif(file_path):
+def read_tif(file_path: str) -> (np.ndarray, tuple, str): # type: ignore
     # Open the file using gdal
     ds = gdal.Open(file_path)
     if ds is None:
@@ -31,11 +30,11 @@ def read_tif(file_path):
 
 
 # 简单读取文件，只返回数组
-def read_tif_array(file):
+def read_tif_array(file: str)-> np.ndarray:
     data_set = gdal.Open(file, gdal.GA_ReadOnly)
     if data_set is None:
         print(file + "文件无法打开")
-        return
+        return # type: ignore
     data_set = gdal.Open(file)
     img_width = data_set.RasterXSize
     img_height = data_set.RasterYSize
@@ -45,7 +44,7 @@ def read_tif_array(file):
 
 
 # 写入新tiff
-def write_tif(save_path, data_, geotransform_, projection_):
+def write_tif(save_path:str, data_:np.ndarray, geotransform_:tuple, projection_:str):
     # set dtype by its size and range
     min_value = np.min(data_)
     max_value = np.max(data_)
@@ -89,7 +88,7 @@ if __name__ == '__main__':
     output_file = os.path.join(dir_path, "4rad", "rad_readwrite_demo.bip")
 
     s_t = time.time()
-    data, geotransform, projection = read_tif(input_file)
+    data, geotransform, projection = read_tif(input_file) # type: ignore
     e_t = time.time()
     print("Read tif took {} seconds".format(e_t - s_t))
 

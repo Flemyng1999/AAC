@@ -48,7 +48,7 @@ def main(dir_path):
             'w2s1', 'w2s2', 'w2s3', 'w2s4', 'w2s5',
             'w3s1', 'w3s2', 'w3s3', 'w3s4', 'w3s5',
             'w4s1', 'w4s2', 'w4s3', 'w4s4', 'w4s5']
-    my_cmap = plt.get_cmap('rainbow', len(name))  # 设置colormap，数字为颜色数量
+    my_cmap = plt.get_cmap('rainbow', len(name))  # type: ignore # 设置colormap，数字为颜色数量
 
     for i in range(20):
         ax.plot(x, vege_[:, i], label=name[i], color=my_cmap(i), alpha=0.5, solid_capstyle='round', )

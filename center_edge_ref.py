@@ -1,4 +1,7 @@
 import os
+import time
+import psutil
+import tracemalloc
 import numpy as np
 
 import matplotlib
@@ -12,7 +15,23 @@ import rad2ref
 import tiff_tool as tt
 
 
-def read_target(txt_path):
+def ram_monitor(func):
+    def wrapper(*args, **kwargs):
+        tracemalloc.start()  # 开始统计内存使用情况
+
+        func(*args, **kwargs)
+
+        snapshot = tracemalloc.take_snapshot()
+        top_stats = snapshot.statistics('lineno')
+        print("[ Mem Usage Top 5: ]")
+        for stat in top_stats[:5]:
+            print(stat)
+        print('[ Peak Memory Usage={:.3f} GiB ]'.format(psutil.Process().memory_info().peak_wset / (1024 * 1024 * 1024)))
+
+    return wrapper
+
+
+def read_target(txt_path: str)->np.ndarray:
     li = []
     with open(txt_path, 'r', encoding='utf-8') as f:
         for x, line in enumerate(f):
@@ -26,7 +45,7 @@ def read_target(txt_path):
     return array
 
 
-def sif(rad_, path_):
+def sif(rad_:np.ndarray, path_:str)->np.ndarray:
     # 寻找3个波段
     irr = read_target(os.path.join(path_, "4rad", "rad_target.txt"))
     list_irr = irr.tolist()  # 转为List
@@ -50,34 +69,37 @@ def sif(rad_, path_):
 def new_colormap(colormap, max_=1, min_=0, N=2560):
     map_color = colors.LinearSegmentedColormap.from_list('my_list', colormap)
     # 把背景值设为白色
-    my_colors = matplotlib.colormaps.get_cmap(map_color)
+    my_colors = matplotlib.colormaps.get_cmap(map_color) # type: ignore
     new_colors = my_colors(np.linspace(0, 1, N))
     num = int(N * (0 - min_) / (max_ - min_))
     new_colors[num, :] = np.array([256 / 256, 256 / 256, 256 / 256, 1])
-    new_cmp = ListedColormap(new_colors)
+    new_cmp = ListedColormap(new_colors) # type: ignore
     return new_cmp
 
 
-def main(path_):
+@ram_monitor
+def main(path_:str):
     rad = tt.read_tif_array(os.path.join(path_, "4rad", "rad_corr.tif"))
-    ref = rad2ref.rad2ref(rad, path_)
-    ndvi = vd.VegeDivision(60, 100, ref)
-    ref_in_vege = ref * ndvi
-    wl = np.loadtxt(os.path.join("docs", "resample50178.txt"))[:, 0]
+    up_index = np.array(side.up_sides(rad[100, :, :])).T
+    down_index = np.array(side.down_sides(rad[100, :, :])).T
+    center_index = np.array(side.center_line(rad[100, :, :])).T
+    del rad
+    print("del rad")
 
-    up_index = np.array(side.up_sides(ref[100, :, :])).T
-    down_index = np.array(side.down_sides(ref[100, :, :])).T
-    center_index = np.array(side.center_line(ref[100, :, :])).T
+    print("SIF begin")
+    flu = sif(tt.read_tif_array(os.path.join(path_, "4rad", "rad_corr.tif")), path_)
+    print("SIF end")
 
+    ref_in_vege = np.load(os.path.join(path_, "5ref", "ref_in_vege.npy"))
     center_ref = ref_in_vege[:, center_index[0], center_index[1]]
     line1 = np.nonzero(center_ref[0, :])
     center_ref = np.mean(center_ref[:, line1[0]], axis=1)
 
     edge_ref = np.hstack((ref_in_vege[:, up_index[0], up_index[1]], ref_in_vege[:, down_index[0], down_index[1]]))
+    del ref_in_vege
+    print("del ref_in_vege")
     line2 = np.nonzero(edge_ref[0, :])
     edge_ref = np.mean(edge_ref[:, line2[0]], axis=1)
-
-    flu = sif(rad, path_)
 
     up = side.up_sides(flu)
     down = side.down_sides(flu)
@@ -89,8 +111,9 @@ def main(path_):
     # plt.rc('font', size=13)
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(2, figsize=(8, 9), dpi=200, constrained_layout=1)
+    fig, ax = plt.subplots(2, figsize=(8, 9), dpi=100, constrained_layout=1)
 
+    wl = np.loadtxt(os.path.join("docs", "resample50178.txt"))[:, 0]
     ax[0].plot(wl, center_ref,
                label="Center reflectance", linewidth=2,
                alpha=0.7, solid_capstyle='round', )
@@ -113,20 +136,24 @@ def main(path_):
                  label="SIF",
                  ticks=list(np.linspace(min_, max_, 5))
                  )
-    ax[1].plot([i[1] for i in up], [i[0] for i in up], 'r', solid_capstyle='round')
-    ax[1].plot([i[1] for i in down], [i[0] for i in down], 'r', solid_capstyle='round')
-    ax[1].plot([i[1] for i in left], [i[0] for i in left], 'r', solid_capstyle='round')
-    ax[1].plot([i[1] for i in right], [i[0] for i in right], 'r', solid_capstyle='round')
-    ax[1].plot([i[1] for i in center], [i[0] for i in center], 'r', solid_capstyle='round')
+    my_cmap = plt.get_cmap('rainbow', 5)  # type: ignore # 设置colormap，数字为颜色数量
+    ax[1].plot([i[1] for i in up], [i[0] for i in up], color=my_cmap(0), alpha=0.7, solid_capstyle='round')
+    ax[1].plot([i[1] for i in down], [i[0] for i in down], color=my_cmap(1), alpha=0.7, solid_capstyle='round')
+    ax[1].plot([i[1] for i in left], [i[0] for i in left], color=my_cmap(2), alpha=0.7, solid_capstyle='round')
+    ax[1].plot([i[1] for i in right], [i[0] for i in right], color=my_cmap(3), alpha=0.7, solid_capstyle='round')
+    ax[1].plot([i[1] for i in center], [i[0] for i in center], color=my_cmap(4), alpha=0.7, solid_capstyle='round')
+    ax[1].axis('off')
     ax[1].set_title("SIF of canopy")
     ax[1].axis('off')
 
     plt.savefig(os.path.join(path_, "5ref", "center_edge.png"), dpi=300)
     plt.show()
+    plt.close()
 
 
 if __name__ == "__main__":
     # 读取图像
     path = r"D:\2022_7_5_sunny"
+    s_t = time.time()
     main(path)
-
+    print("time: ", time.time() - s_t)

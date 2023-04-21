@@ -1,5 +1,4 @@
 import os
-
 import numpy as np
 import tiff_tool as tt
 
@@ -104,7 +103,7 @@ def center_line(img_data):
     return center_
 
 
-def test(path):
+def outlines(path):
     arr_data = tt.read_tif_array(os.path.join(path, "4rad", "rad.bip"))
     r = arr_data[59, :, :]
     g = arr_data[36, :, :]
@@ -130,14 +129,15 @@ def test(path):
     plt.rc('font', size=13)
     plt.rcParams['xtick.direction'] = 'in'  # 将x周的刻度线方向设置向内
     plt.rcParams['ytick.direction'] = 'in'  # 将y轴的刻度方向设置向内
-    fig, ax = plt.subplots(figsize=(8, 5), dpi=300, constrained_layout=1)
+    fig, ax = plt.subplots(figsize=(8, 5), dpi=150, constrained_layout=1)
 
+    my_cmap = plt.get_cmap('gray', 5)  # type: ignore # 设置colormap，数字为颜色数量
     ax.imshow(arr)
-    ax.plot([i[1] for i in up], [i[0] for i in up], 'r')
-    ax.plot([i[1] for i in down], [i[0] for i in down], 'r')
-    ax.plot([i[1] for i in left], [i[0] for i in left], 'r')
-    ax.plot([i[1] for i in right], [i[0] for i in right], 'r')
-    ax.plot([i[1] for i in center], [i[0] for i in center], 'r')
+    ax.plot([i[1] for i in up], [i[0] for i in up], color=my_cmap(0), alpha=0.7, solid_capstyle='round')
+    ax.plot([i[1] for i in down], [i[0] for i in down], color=my_cmap(1), alpha=0.7, solid_capstyle='round')
+    ax.plot([i[1] for i in left], [i[0] for i in left], color=my_cmap(2), alpha=0.7, solid_capstyle='round')
+    ax.plot([i[1] for i in right], [i[0] for i in right], color=my_cmap(3), alpha=0.7, solid_capstyle='round')
+    ax.plot([i[1] for i in center], [i[0] for i in center], color=my_cmap(4), alpha=0.7, solid_capstyle='round')
     ax.axis('off')
     plt.savefig(os.path.join(path, "4rad", "outlines.png"), dpi=300)
     plt.show()
@@ -145,4 +145,4 @@ def test(path):
 
 if __name__ == "__main__":
     path_ = r"D:\2022_7_20_sunny"
-    test(path_)
+    outlines(path_)
