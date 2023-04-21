@@ -1,7 +1,7 @@
 import os
 import math
+import sys
 import time
-import tracemalloc
 import psutil
 from tqdm import tqdm
 import VegeDivision as vd
@@ -186,8 +186,16 @@ if __name__ == '__main__':
              [132, 133, 134, 138, 139, 140, 141], [132, 133, 134, 138, 139, 140, 141],
              [114, 115, 116, 117, 139, 140, 141, 142], [114, 115, 116, 117, 139, 140, 141, 142]]  # 作为基线的参考波段
 
-    disk1 = 'D:'
-    disk2 = 'E:'
+    
+    if sys.platform == "win32":
+        disk1 = 'D:'
+        disk2 = 'E:'
+    elif sys.platform == "darwin":
+        disk1 = os.path.join('Volumns', 'HyperSpec')
+        disk2 = os.path.join('Volumns', 'HyperSpec')
+    else: # 默认为 Linux
+        disk1 = os.path.join('Volumns', 'HyperSpec')
+        disk2 = os.path.join('Volumns', 'HyperSpec')
     # path = ["2022_7_5_sunny"]
     path = ["2022_7_5_sunny", "2022_7_9_cloudy", "2022_7_12_sunny",
             "2022_7_13_cloudy", "2022_7_16_sunny", "2022_7_20_sunny",
