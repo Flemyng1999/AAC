@@ -45,13 +45,13 @@ cd AAC
 ### 2. 安装依赖
 
 ```
-# （选择一）推荐
-python -m pip install -r requirements.txt   
+# （选择一）推荐（因为GDAL包用pip安装会一直报错）
+python -m conda install --file requirements.txt   
 
 # （选择二）如果您使用anaconda，步骤也是类似的：
-# （选择二.1）conda create -n ACC_venv python=3.11
-# （选择二.2）conda activate ACC_venv
-# （选择二.3）python -m pip install -r requirements.txt
+# （选择二.1）conda create -n ACC_env python=3.10
+# （选择二.2）conda activate ACC_env
+# （选择二.3）python -m conda install --file requirements.txt
 
 # 备注：使用官方pip源或者阿里pip源，其他pip源（如一些大学的pip）有可能出问题，临时换源方法： 
 # python -m pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
