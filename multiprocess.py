@@ -17,12 +17,13 @@ from multiprocessing import Pool
 def ram_monitor(func):
     def wrapper(*args, **kwargs):
         func(*args, **kwargs)
-        print('\n[ Peak Memory Usage={:.3f} GiB ]'.format(psutil.Process().memory_info().peak_wset / (1024 * 1024 * 1024)))
+        print('\n[ Peak Memory Usage={:.3f} GiB ]'.format(
+            psutil.Process().memory_info().peak_wset / (1024 * 1024 * 1024)))
 
     return wrapper
 
 
-def baseline(part_, bands_):
+def baseline(part_: np.ndarray, bands_: list) -> np.ndarray:
     # print('Generating baseline...')
     all_baseline = part_[bands_]
     baseline_ = np.mean(all_baseline, axis=0)  # 计算所有bands上的平均值
@@ -30,7 +31,7 @@ def baseline(part_, bands_):
 
 
 # 用于计算系数使用的distance
-def distance(arr, height=80, view_angle=17.6):
+def distance(arr: np.ndarray, height: float = 80, view_angle: float = 17.6) -> (np.ndarray, np.ndarray):
     index__, dist_ = ap.pixel_info(arr)
     long = height * math.tan(view_angle * math.pi / 360)
     dist_ = long * dist_ / max(dist_)  # 将地面上的像素距离转化为真实长度
@@ -46,7 +47,7 @@ def distance(arr, height=80, view_angle=17.6):
     return index__, distance_
 
 
-def beta_coe(o2a, bl, ndvi, save_path):
+def beta_coe(o2a: np.ndarray, bl: np.ndarray, ndvi: np.ndarray, save_path: str) -> (np.ndarray, np.ndarray):
     # print('Calculating β')
     o2a_ = o2a * ndvi
     baseline_ = bl * ndvi
@@ -77,7 +78,7 @@ def beta_coe(o2a, bl, ndvi, save_path):
     return beta_, index_
 
 
-def correct(o2a_, baseline_, ndvi, save_path):
+def correct(o2a_: np.ndarray, baseline_: np.ndarray, ndvi: np.ndarray, save_path: str) -> np.ndarray:
     # print('Correcting Radiance in the {}th Wavelength'.format(wavelength_))
     beta, index = beta_coe(o2a_, baseline_, ndvi, save_path)
     rows = list(np.array(index[:, 0], dtype=int))
@@ -103,8 +104,8 @@ def process_array_set(args):
     return result
 
 
-# @ram_monitor
-def main(path_, arr_wl, baseline_wl):
+@ram_monitor
+def main(path_: str, arr_wl: list, baseline_wl: list) -> None:
     if not os.path.exists(os.path.join(path_, "5ref", "ndvi.npy")):
         # 目标文件不存在
         ref = rad2ref.main(path_)
@@ -141,8 +142,8 @@ def main(path_, arr_wl, baseline_wl):
     del rad, ndvi  # 释放变量rad和ndvi占用的内存
 
 
-# @ram_monitor
-def test(path_):
+@ram_monitor
+def test(path_: str) -> None:
     # 计算ref
     s_t = time.time()
     ref = rad2ref.main(path_)
@@ -186,14 +187,13 @@ if __name__ == '__main__':
              [132, 133, 134, 138, 139, 140, 141], [132, 133, 134, 138, 139, 140, 141],
              [114, 115, 116, 117, 139, 140, 141, 142], [114, 115, 116, 117, 139, 140, 141, 142]]  # 作为基线的参考波段
 
-    
     if sys.platform == "win32":
         disk1 = 'D:'
         disk2 = 'E:'
     elif sys.platform == "darwin":
         disk1 = os.path.join('/Volumes', 'HyperSpec')
         disk2 = os.path.join('/Volumes', 'HyperSpec')
-    else: # 默认为 Linux
+    else:  # 默认为 Linux
         disk1 = os.path.join('/Volumes', 'HyperSpec')
         disk2 = os.path.join('/Volumes', 'HyperSpec')
     path = ["2022_7_5_sunny"]

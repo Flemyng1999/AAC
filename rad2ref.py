@@ -10,7 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def read_target(txt_path: str)->np.ndarray:
+def read_target(txt_path: str) -> np.ndarray:
     li = []
     with open(txt_path, 'r', encoding='utf-8') as f:
         for x, line in enumerate(f):
@@ -24,14 +24,14 @@ def read_target(txt_path: str)->np.ndarray:
     return array
 
 
-def rad2ref(rad:np.ndarray, dir_path:str)->np.ndarray:
+def rad2ref(rad: np.ndarray, dir_path: str) -> np.ndarray:
     # [dir_path] is ONLY for target_rad
     target_rad = read_target(os.path.join(dir_path, "4rad", "rad_target.txt"))
     target_ref = np.loadtxt(os.path.join("docs", "resample50178.txt"), dtype=np.float32)
 
     irr = target_rad / target_ref[:, 1]
     irr_ = irr.reshape((150, 1, 1))
-    ref = (rad / irr_).astype(np.float32)
+    ref_ = (rad / irr_).astype(np.float32)
 
     # # plot
     # plt.rc('font', size=13)
@@ -48,19 +48,29 @@ def rad2ref(rad:np.ndarray, dir_path:str)->np.ndarray:
     # ax[1].legend(loc=0)
     # plt.show()
 
-    return ref
+    return ref_
 
 
-def main(dir_path:str, img_show=False)->np.ndarray:
+def main(dir_path: str, img_show=False) -> np.ndarray:
     # data
-    rad, geo, proj = tt.read_tif(os.path.join(dir_path, "4rad", "rad_corr.tif")) # type: ignore
+    folder_path = os.path.join(dir_path, "4rad")
+    # 检查文件夹中是否有rad_corr.tif文件
+    if os.path.exists(os.path.join(folder_path, 'rad_corr.tif')):
+        # 如果有，则读取rad_corr.tif文件
+        file_path = os.path.join(folder_path, 'rad_corr.tif')
+        rad, geo, proj = tt.read_tif(file_path)
+    else:
+        # 如果没有，则读取rad.bip文件
+        file_path = os.path.join(folder_path, 'rad.bip')
+        rad, geo, proj = tt.read_tif(file_path)
+
     target_rad = read_target(os.path.join(dir_path, "4rad", "rad_target.txt"))
     target_ref = np.loadtxt(os.path.join("docs", "resample50178.txt"), dtype=np.float32)
 
     irr = target_rad / target_ref[:, 1]
     irr_ = irr.reshape((150, 1, 1))
-    ref = (rad / irr_).astype(np.float32)
-    tt.write_tif(os.path.join(dir_path, "5ref", "ref.bip"), ref, geo, proj)
+    ref_ = (rad / irr_).astype(np.float32)
+    tt.write_tif(os.path.join(dir_path, "5ref", "ref.bip"), ref_, geo, proj)
 
     # plot
     if img_show:
@@ -72,7 +82,7 @@ def main(dir_path:str, img_show=False)->np.ndarray:
         ax[0].plot(target_ref[:, 0], target_rad, label="target_rad", solid_capstyle='round')
         ax[0].plot(target_ref[:, 0], irr, label="irr", solid_capstyle='round')
         ax[1].plot(target_ref[:, 0], target_ref[:, 1], color='k', label="target_ref", solid_capstyle='round')
-        ax[1].plot(target_ref[:, 0], ref[:, 555, 1849], color='g', label="canopy_ref",solid_capstyle='round')
+        ax[1].plot(target_ref[:, 0], ref_[:, 555, 1849], color='g', label="canopy_ref", solid_capstyle='round')
 
         ax[0].legend(loc=0)
         ax[1].legend(loc=0)
@@ -80,7 +90,7 @@ def main(dir_path:str, img_show=False)->np.ndarray:
     else:
         plt.close()
 
-    return ref
+    return ref_
 
 
 if __name__ == '__main__':
